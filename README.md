@@ -26,18 +26,17 @@
 
 ## Installation
 
-### Clone the repository
-
 ```bash
-git clone https://github.com/coffinsp/lostools
+git clone https://github.com/coffinsp/lostools.git
 cd lostools
+pip3 install -r requirements.txt
 ```
 ## Running the Script
 
 To run the script, use the following command:
 
 ```bash
-python xlsninja.py
+python3 xlsNinja.py
 ```
 ## Input Information:
 
@@ -46,7 +45,7 @@ python xlsninja.py
 - **Success Criteria:**:  Define the patterns or strings that indicate a successful exploitation attempt.
 - **Concurrent Threads:**: Set the number of threads for multi-threaded scanning.
 - **View and Save Results:**: Results will be displayed in real-time as the scan progresses.
-After the scan completes, you will have the option to save the URLs found to be vulnerable to a file for future reference.
+After the scan is complete, you will have the option to save the URLs found to be vulnerable to a file for future reference.
 
 ## Customization
 
@@ -57,7 +56,7 @@ XlsNinja allows for various levels of customization to fit your specific testing
 
 ## Disclaimer
 
-XlsNinja is intended for educational and ethical hacking purposes only. It should only be used to test systems you own or have explicit permission to test. Unauthorized use on third-party websites or systems without consent is illegal and unethical.
+XlsNinja is intended for educational and ethical hacking purposes only. It should only be used to test systems you own or have explicit permission to test. Unauthorized use of third-party websites or systems without consent is illegal and unethical.
 
 ## Contributors
 - AnonKryptiQuz
