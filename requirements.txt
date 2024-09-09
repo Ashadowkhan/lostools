@@ -6,3 +6,4 @@ colorama==0.4.6
 rich==12.6.0
 requests==2.28.1
 prompt_toolkit==3.0.31
+windows-curses==2.3.3
