@@ -56,10 +56,10 @@ class Color:
     UNITALIC = '\033[23m'
 
 USER_AGENTS = []
-with open('payloads/agents/user_agents.txt', 'r') as file:
+with open('payloads/agents/user_agents.txt', 'r', encoding='utf-8') as file:
     USER_AGENTS = [line.strip() for line in file if line.strip()]
 
-with open('payloads/waf/signs.json', 'r') as file:
+with open('payloads/waf/signs.json', 'r', encoding='utf-8') as file:
     WAF_SIGNATURES = json.load(file)
 
 try:
@@ -214,7 +214,7 @@ try:
                 save_choice = input(f"{Fore.CYAN}\n[?] Do you want to save the vulnerable URLs to a file? (y/n, press Enter for n): ").strip().lower()
                 if save_choice == 'y':
                     output_file = input(f"{Fore.CYAN}[?] Enter the name of the output file (press Enter for 'vulnerable_urls.txt'): ").strip() or 'vulnerable_urls.txt'
-                    with open(output_file, 'w') as f:
+                    with open(output_file, 'w', encoding='utf-8') as f:
                         for url in vulnerable_urls:
                             f.write(url + '\n')
                     print(f"{Fore.GREEN}Vulnerable URLs have been saved to {output_file}")
@@ -230,7 +230,7 @@ try:
                         if url_input:
                             if not os.path.isfile(url_input):
                                 raise FileNotFoundError(f"File not found: {url_input}")
-                            with open(url_input) as file:
+                            with open(url_input, 'r', encoding='utf-8') as file:
                                 urls = [line.strip() for line in file if line.strip()]
                             return urls
                         else:
@@ -254,7 +254,7 @@ try:
                         payload_input = get_file_path("[?] Enter the path to the payloads file: ")
                         if not os.path.isfile(payload_input):
                             raise FileNotFoundError(f"File not found: {payload_input}")
-                        with open(payload_input) as file:
+                        with open(payload_input, 'r', encoding='utf-8') as file:
                             payloads = [line.strip() for line in file if line.strip()]
                         return payloads
                     except Exception as e:
@@ -533,7 +533,7 @@ try:
 
                 if payload_file:
                     try:
-                        with open(payload_file, "r") as file:
+                        with open(payload_file, "r", encoding='utf-8') as file:
                             payloads = [line.strip() for line in file if line.strip()]
                             if not payloads:
                                 raise ValueError("Payload file is empty.")
@@ -647,7 +647,7 @@ try:
 
             def save_injectables_to_file(self):
                 if self.injectables:
-                    with open(self.output, "w") as output_file:
+                    with open(self.output, "w", encoding='utf-8') as output_file:
                         for url in self.injectables:
                             output_file.write(url + "\n")
                     print(f"{Fore.GREEN}[+] Vulnerable URLs saved to {self.output}")
@@ -676,7 +676,7 @@ try:
 
                                     
             def save_injectables_to_file(self):
-                with open(self.output, "w") as output_file:
+                with open(self.output, "w", encoding='utf-8') as output_file:
                     for url in self.injectables:
                         output_file.write(url + "\n")
 
@@ -691,7 +691,7 @@ try:
                     if url_input:
                         if not os.path.isfile(url_input):
                             raise FileNotFoundError(f"File not found: {url_input}")
-                        with open(url_input) as file:
+                        with open(url_input, encoding='utf-8') as file:
                             urls = [line.strip() for line in file if line.strip()]
                         return urls
                     else:
@@ -883,7 +883,7 @@ try:
                 save_choice = input(Fore.CYAN + "\n[?] Do you want to save the vulnerable URLs to a file? (y/n, press Enter for n): ").strip().lower()
                 if save_choice == 'y':
                     output_file = input(Fore.CYAN + "Enter the name of the output file (press Enter for 'vulnerable_urls.txt'): ").strip() or 'vulnerable_urls.txt'
-                    with open(output_file, 'w') as f:
+                    with open(output_file, 'w', encoding='utf-8') as f:
                         for url in vulnerable_urls:
                             f.write(url + '\n')
                     print(Fore.GREEN + f"Vulnerable URLs have been saved to {output_file}")
@@ -899,7 +899,7 @@ try:
                         if url_input:
                             if not os.path.isfile(url_input):
                                 raise FileNotFoundError(f"File not found: {url_input}")
-                            with open(url_input) as file:
+                            with open(url_input, encoding='utf-8') as file:
                                 urls = [line.strip() for line in file if line.strip()]
                             return urls
                         else:
@@ -923,7 +923,7 @@ try:
                         payload_input = get_file_path("[?] Enter the path to the payloads file: ")
                         if not os.path.isfile(payload_input):
                             raise FileNotFoundError(f"File not found: {payload_input}")
-                        with open(payload_input) as file:
+                        with open(payload_input, encoding='utf-8') as file:
                             payloads = [line.strip() for line in file if line.strip()]
                         return payloads
                     except Exception as e:
@@ -1112,7 +1112,7 @@ try:
             save_choice = input(Fore.CYAN + "\n[?] Do you want to save the vulnerable URLs to a file? (y/n, press Enter for n): ").strip().lower()
             if save_choice == 'y':
                 output_file = input(Fore.CYAN + "Enter the name of the output file (press Enter for 'vulnerable_urls.txt'): ").strip() or 'vulnerable_urls.txt'
-                with open(output_file, 'w') as f:
+                with open(output_file, 'w', encoding='utf-8') as f:
                     for url in vulnerable_urls:
                         f.write(url + '\n')
                 print(Fore.GREEN + f"Vulnerable URLs have been saved to {output_file}")
@@ -1126,7 +1126,7 @@ try:
                     if url_input:
                         if not os.path.isfile(url_input):
                             raise FileNotFoundError(f"File not found: {url_input}")
-                        with open(url_input) as file:
+                        with open(url_input, encoding='utf-8') as file:
                             urls = [line.strip() for line in file if line.strip()]
                         return urls
                     else:
@@ -1150,7 +1150,7 @@ try:
                     payload_input = get_file_path("[?] Enter the path to the payloads file: ")
                     if not os.path.isfile(payload_input):
                         raise FileNotFoundError(f"File not found: {payload_input}")
-                    with open(payload_input) as file:
+                    with open(payload_input, encoding='utf-8') as file:
                         payloads = [line.strip() for line in file if line.strip()]
                     return payloads
                 except Exception as e:
