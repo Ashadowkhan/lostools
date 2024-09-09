@@ -1,10 +1,44 @@
 # This program was created by: AnonKryptiQuz, Coffinxp Hexsh1dow and Naho
 
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from curses import panel
-import random
-import re
-from wsgiref import headers
+try:
+    import aiohttp
+    import asyncio
+    import concurrent.futures
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    import logging
+    import os
+    import random
+    import re
+    import requests
+    import json
+    from requests.adapters import HTTPAdapter
+    from selenium import webdriver
+    from selenium.webdriver.chrome.options import Options
+    from selenium.webdriver.chrome.service import Service as ChromeService
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support import expected_conditions as EC
+    from selenium.webdriver.support.ui import WebDriverWait
+    import subprocess
+    import sys
+    import time
+    from time import sleep
+    import urllib.parse
+    from urllib.parse import parse_qs, quote, urlencode, urlsplit, urlunsplit
+    import urllib3
+    from urllib3.util.retry import Retry
+    from bs4 import BeautifulSoup
+    from colorama import Fore, Style, init
+    from prompt_toolkit import prompt
+    from prompt_toolkit.completion import PathCompleter
+    from rich import print as rich_print
+    from rich.panel import Panel
+    from rich.table import Table
+    from webdriver_manager.chrome import ChromeDriverManager
+    
+except ImportError as e:
+    print(f"Error importing module: {e}")
+    print("Please install the required package using pip install <package_name>")
+    exit(1)
 
 
 class Color:
@@ -21,31 +55,19 @@ class Color:
     ITALIC = '\033[3m'
     UNITALIC = '\033[23m'
 
+USER_AGENTS = []
+with open('payloads/agents/user_agents.txt', 'r') as file:
+    USER_AGENTS = [line.strip() for line in file if line.strip()]
+
+with open('payloads/waf/signs.json', 'r') as file:
+    WAF_SIGNATURES = json.load(file)
+
 try:
-    import os
-    import sys
-    import subprocess
-    from colorama import Fore, Style, init
-    from time import sleep
-    from rich import print as rich_print
-    from rich.panel import Panel
-    from rich.table import Table
-    import concurrent.futures
-    from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
-    from bs4 import BeautifulSoup
-    import time
-    import requests
-    import urllib3
-    from prompt_toolkit import prompt
-    from prompt_toolkit.completion import PathCompleter
-    import subprocess
-    import sys
-    import random
-    from urllib.parse import urlparse, quote
-
-
-
+    
     init(autoreset=True)
+
+    def clear_screen():
+        os.system('cls' if os.name == 'nt' else 'clear')
 
     def check_and_install_packages(packages):
         for package, version in packages.items():
@@ -54,19 +76,14 @@ try:
             except ImportError:
                 subprocess.check_call([sys.executable, '-m', 'pip', 'install', f"{package}=={version}"])
 
-    def clear_screen():
-        os.system('cls' if os.name == 'nt' else 'clear')
-
-
-
     def display_menu():
         title = r"""
-    ██╗  ██╗██╗     ███████╗███╗   ██╗██╗███╗   ██╗     ██╗ █████╗ 
-    ╚██╗██╔╝██║     ██╔════╝████╗  ██║██║████╗  ██║     ██║██╔══██╗
-    ╚███╔╝ ██║     ███████╗██╔██╗ ██║██║██╔██╗ ██║     ██║███████║
-    ██╔██╗ ██║     ╚════██║██║╚██╗██║██║██║╚██╗██║██   ██║██╔══██║
-    ██╔╝ ██╗███████╗███████║██║ ╚████║██║██║ ╚████║╚█████╔╝██║  ██║
-    ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝  ╚═══╝╚═╝╚═╝  ╚═══╝ ╚════╝ ╚═╝  ╚═╝
+██╗  ██╗██╗     ███████╗███╗   ██╗██╗███╗   ██╗     ██╗ █████╗ 
+╚██╗██╔╝██║     ██╔════╝████╗  ██║██║████╗  ██║     ██║██╔══██╗
+ ╚███╔╝ ██║     ███████╗██╔██╗ ██║██║██╔██╗ ██║     ██║███████║
+ ██╔██╗ ██║     ╚════██║██║╚██╗██║██║██║╚██╗██║██   ██║██╔══██║
+██╔╝ ██╗███████╗███████║██║ ╚████║██║██║ ╚████║╚█████╔╝██║  ██║
+╚═╝  ╚═╝╚══════╝╚══════╝╚═╝  ╚═══╝╚═╝╚═╝  ╚═══╝ ╚════╝ ╚═╝  ╚═╝
     """
         print(Color.ORANGE + Style.BRIGHT + title.center(63))
         print(Fore.WHITE + Style.BRIGHT + "─" * 63)
@@ -84,7 +101,7 @@ try:
         ]
         
         for option in options:
-            print(border_color + "│" + option_color + option.ljust(59) + border_color + "│")
+            print(border_color + "│" + option_color + option.ljust(61) + border_color + "│")
         
         print(border_color + "└" + "─" * 61 + "┘")
         authors = "Created by: AnonKryptiQuz, CoffinXP, HexSh1dow, and Naho"
@@ -96,7 +113,7 @@ try:
         print(Fore.WHITE + Style.BRIGHT + instructions.center(63))
         print(Fore.WHITE + Style.BRIGHT + "─" * 63)
 
-    def print_exit_menu():
+    def exit_menu():
         clear_screen()
 
         panel = Panel(
@@ -118,79 +135,14 @@ try:
         print(Color.RED + "\n\nSession Off ...\n")
         exit()
 
-    def run_sql_scanner():
+    def sql_scanner():
         try:
-            import requests
-            import logging
-            from requests.adapters import HTTPAdapter
-            from urllib3.util.retry import Retry
-            import urllib3
-            import time
-            import concurrent.futures
-            from colorama import Fore, init
-            import os
-            from prompt_toolkit import prompt
-            from prompt_toolkit.completion import PathCompleter
-            import subprocess
-            import sys
-            import random
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
             init(autoreset=True)
 
-            USER_AGENTS = [
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Version/14.1.2 Safari/537.36",
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/91.0.864.70",
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Firefox/89.0",
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0",
-                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:91.0) Gecko/20100101 Firefox/91.0",
-                "Mozilla/5.0 (Linux; Android 10; SM-G973F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36",
-                "Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Mobile Safari/537.36",
-            ]
-
-            WAF_SIGNATURES = {
-                'Cloudflare': ['cf-ray', 'cloudflare', 'cf-request-id', 'cf-cache-status'],
-                'Akamai': ['akamai', 'akamai-ghost', 'akamai-x-cache', 'x-akamai-request-id'],
-                'Sucuri': ['x-sucuri-id', 'sucuri', 'x-sucuri-cache'],
-                'ModSecurity': ['mod_security', 'modsecurity', 'x-modsecurity-id', 'x-mod-sec-rule'],
-                'Barracuda': ['barra', 'x-barracuda', 'bnmsg'],
-                'Imperva': ['x-cdn', 'imperva', 'incapsula', 'x-iinfo', 'x-cdn-forward'],
-                'F5 Big-IP ASM': ['x-waf-status', 'f5', 'x-waf-mode', 'x-asm-ver'],
-                'DenyAll': ['denyall', 'sessioncookie'],
-                'FortiWeb': ['fortiwafsid', 'x-fw-debug'],
-                'Jiasule': ['jsluid', 'jiasule'],
-                'AWS WAF': ['awswaf', 'x-amzn-requestid', 'x-amzn-trace-id'],
-                'StackPath': ['stackpath', 'x-sp-url', 'x-sp-waf'],
-                'BlazingFast': ['blazingfast', 'x-bf-cache-status', 'bf'],
-                'NSFocus': ['nsfocus', 'nswaf', 'nsfocuswaf'],
-                'Edgecast': ['ecdf', 'x-ec-custom-error'],
-                'Alibaba Cloud WAF': ['ali-cdn', 'alibaba'],
-                'AppTrana': ['apptrana', 'x-wf-sid'],
-                'Radware': ['x-rdwr', 'rdwr'],
-                'SafeDog': ['safedog', 'x-sd-id'],
-                'Comodo WAF': ['x-cwaf', 'comodo'],
-                'Yundun': ['yundun', 'yunsuo'],
-                'Qiniu': ['qiniu', 'x-qiniu'],
-                'NetScaler': ['netscaler', 'x-nsprotect'],
-                'Securi': ['x-sucuri-id', 'sucuri', 'x-sucuri-cache'],
-                'Reblaze': ['x-reblaze-protection', 'reblaze'],
-                'Microsoft Azure WAF': ['azure', 'x-mswaf', 'x-azure-ref'],
-                'NAXSI': ['x-naxsi-sig'],
-                'Wallarm': ['x-wallarm-waf-check', 'wallarm'],
-            }
             def get_random_user_agent():
                 return random.choice(USER_AGENTS)
-
-            def check_and_install_packages(packages):
-                for package, version in packages.items():
-                    try:
-                        __import__(package)
-                    except ImportError:
-                        subprocess.check_call([sys.executable, '-m', 'pip', 'install', f"{package}=={version}"])
-
-            def clear_screen():
-                os.system('cls' if os.name == 'nt' else 'clear')
 
             def get_retry_session(retries=3, backoff_factor=0.3, status_forcelist=(500, 502, 504)):
                 session = requests.Session()
@@ -515,91 +467,14 @@ try:
 
 
 
-    def run_xss_scanner():
+    def xss_scanner():
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-        import argparse
-        import subprocess
-        import sys
-        import time
-        import aiohttp
-        import asyncio
-        import logging
-        import os
-        from colorama import Fore, init
-        from urllib.parse import urlencode, parse_qs, urlsplit, urlunsplit
-        from prompt_toolkit import prompt
-        from prompt_toolkit.completion import PathCompleter
-        from rich import print as rich_print
-        from rich.panel import Panel
-        from rich.table import Table
-        from requests.adapters import HTTPAdapter
-        from urllib3.util.retry import Retry
-        from selenium import webdriver
-        from selenium.webdriver.chrome.service import Service as ChromeService
-        from selenium.webdriver.common.by import By
-        from selenium.webdriver.chrome.options import Options
-        from selenium.webdriver.support.ui import WebDriverWait
-        from selenium.webdriver.support import expected_conditions as EC
-        from webdriver_manager.chrome import ChromeDriverManager
-        import logging
         logging.getLogger('WDM').setLevel(logging.ERROR)
 
 
         init(autoreset=True)
         logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-        USER_AGENTS = [
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Version/14.1.2 Safari/537.36",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/91.0.864.70",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Firefox/89.0",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:91.0) Gecko/20100101 Firefox/91.0",
-        "Mozilla/5.0 (Linux; Android 10; SM-G973F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36",
-        "Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Mobile Safari/537.36",
-            ]
-        WAF_SIGNATURES = {
-            'Cloudflare': ['cf-ray', 'cloudflare', 'cf-request-id', 'cf-cache-status'],
-            'Akamai': ['akamai', 'akamai-ghost', 'akamai-x-cache', 'x-akamai-request-id'],
-            'Sucuri': ['x-sucuri-id', 'sucuri', 'x-sucuri-cache'],
-            'ModSecurity': ['mod_security', 'modsecurity', 'x-modsecurity-id', 'x-mod-sec-rule'],
-            'Barracuda': ['barra', 'x-barracuda', 'bnmsg'],
-            'Imperva': ['x-cdn', 'imperva', 'incapsula', 'x-iinfo', 'x-cdn-forward'],
-            'F5 Big-IP ASM': ['x-waf-status', 'f5', 'x-waf-mode', 'x-asm-ver'],
-            'DenyAll': ['denyall', 'sessioncookie'],
-            'FortiWeb': ['fortiwafsid', 'x-fw-debug'],
-            'Jiasule': ['jsluid', 'jiasule'],
-            'AWS WAF': ['awswaf', 'x-amzn-requestid', 'x-amzn-trace-id'],
-            'StackPath': ['stackpath', 'x-sp-url', 'x-sp-waf'],
-            'BlazingFast': ['blazingfast', 'x-bf-cache-status', 'bf'],
-            'NSFocus': ['nsfocus', 'nswaf', 'nsfocuswaf'],
-            'Edgecast': ['ecdf', 'x-ec-custom-error'],
-            'Alibaba Cloud WAF': ['ali-cdn', 'alibaba'],
-            'AppTrana': ['apptrana', 'x-wf-sid'],
-            'Radware': ['x-rdwr', 'rdwr'],
-            'SafeDog': ['safedog', 'x-sd-id'],
-            'Comodo WAF': ['x-cwaf', 'comodo'],
-            'Yundun': ['yundun', 'yunsuo'],
-            'Qiniu': ['qiniu', 'x-qiniu'],
-            'NetScaler': ['netscaler', 'x-nsprotect'],
-            'Securi': ['x-sucuri-id', 'sucuri', 'x-sucuri-cache'],
-            'Reblaze': ['x-reblaze-protection', 'reblaze'],
-            'Microsoft Azure WAF': ['azure', 'x-mswaf', 'x-azure-ref'],
-            'NAXSI': ['x-naxsi-sig'],
-            'Wallarm': ['x-wallarm-waf-check', 'wallarm'],
-        }
-
-        def check_and_install_packages(packages):
-            for package, version in packages.items():
-                try:
-                    __import__(package)
-                except ImportError:
-                    subprocess.check_call([sys.executable, '-m', 'pip', 'install', f"{package}=={version}"])
-
-        def clear_screen():
-            os.system('cls' if os.name == 'nt' else 'clear')
-
 
         def get_random_user_agent():
             return random.choice(USER_AGENTS)
@@ -917,66 +792,13 @@ try:
                 sys.exit(0)
 
 
-    def run_or_scanner():
+    def or_scanner():
 
         try:
-            import requests
-            import urllib.parse
-            import os
-            import sys
-            import subprocess
-            import logging
-            import time
-            from concurrent.futures import ThreadPoolExecutor, as_completed
-            from prompt_toolkit import prompt
-            from prompt_toolkit.completion import PathCompleter
-            from colorama import Fore, init
-            from requests.adapters import HTTPAdapter
-            from urllib3.util.retry import Retry
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
             init(autoreset=True)
 
-            USER_AGENTS = [
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Version/14.1.2 Safari/537.36",
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/91.0.864.70",
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Firefox/89.0",
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0",
-                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:91.0) Gecko/20100101 Firefox/91.0",
-                "Mozilla/5.0 (Linux; Android 10; SM-G973F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36",
-                "Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Mobile Safari/537.36",
-                    ]
-            WAF_SIGNATURES = {
-                'Cloudflare': ['cf-ray', 'cloudflare', 'cf-request-id', 'cf-cache-status'],
-                'Akamai': ['akamai', 'akamai-ghost', 'akamai-x-cache', 'x-akamai-request-id'],
-                'Sucuri': ['x-sucuri-id', 'sucuri', 'x-sucuri-cache'],
-                'ModSecurity': ['mod_security', 'modsecurity', 'x-modsecurity-id', 'x-mod-sec-rule'],
-                'Barracuda': ['barra', 'x-barracuda', 'bnmsg'],
-                'Imperva': ['x-cdn', 'imperva', 'incapsula', 'x-iinfo', 'x-cdn-forward'],
-                'F5 Big-IP ASM': ['x-waf-status', 'f5', 'x-waf-mode', 'x-asm-ver'],
-                'DenyAll': ['denyall', 'sessioncookie'],
-                'FortiWeb': ['fortiwafsid', 'x-fw-debug'],
-                'Jiasule': ['jsluid', 'jiasule'],
-                'AWS WAF': ['awswaf', 'x-amzn-requestid', 'x-amzn-trace-id'],
-                'StackPath': ['stackpath', 'x-sp-url', 'x-sp-waf'],
-                'BlazingFast': ['blazingfast', 'x-bf-cache-status', 'bf'],
-                'NSFocus': ['nsfocus', 'nswaf', 'nsfocuswaf'],
-                'Edgecast': ['ecdf', 'x-ec-custom-error'],
-                'Alibaba Cloud WAF': ['ali-cdn', 'alibaba'],
-                'AppTrana': ['apptrana', 'x-wf-sid'],
-                'Radware': ['x-rdwr', 'rdwr'],
-                'SafeDog': ['safedog', 'x-sd-id'],
-                'Comodo WAF': ['x-cwaf', 'comodo'],
-                'Yundun': ['yundun', 'yunsuo'],
-                'Qiniu': ['qiniu', 'x-qiniu'],
-                'NetScaler': ['netscaler', 'x-nsprotect'],
-                'Securi': ['x-sucuri-id', 'sucuri', 'x-sucuri-cache'],
-                'Reblaze': ['x-reblaze-protection', 'reblaze'],
-                'Microsoft Azure WAF': ['azure', 'x-mswaf', 'x-azure-ref'],
-                'NAXSI': ['x-naxsi-sig'],
-                'Wallarm': ['x-wallarm-waf-check', 'wallarm'],
-            }
 
             def get_random_user_agent():
                 return random.choice(USER_AGENTS)
@@ -1011,14 +833,6 @@ try:
 
                 if not waf_detected:
                     print(f"{Fore.GREEN}[+] No WAF detected.{Fore.RESET}")
-            
-
-            def check_and_install_packages(packages):
-                for package, version in packages.items():
-                    try:
-                        __import__(package)
-                    except ImportError:
-                        subprocess.check_call([sys.executable, '-m', 'pip', 'install', f"{package}=={version}"])
 
             def test_open_redirect(url, payloads, success_criteria, max_threads=5):
                 def check_payload(payload):
@@ -1124,9 +938,6 @@ try:
                 print(Fore.YELLOW + f"[i] Total scanned: {total_scanned}")
                 print(Fore.YELLOW + f"[i] Time taken: {int(time.time() - start_time)} seconds")
 
-            def clear_screen():
-                os.system('cls' if os.name == 'nt' else 'clear')
-
             def get_file_path(prompt_text):
                 completer = PathCompleter()
                 return prompt(prompt_text, completer=completer).strip()
@@ -1212,83 +1023,11 @@ try:
             sys.exit(0)
 
 
-    def run_lfi_scanner():
-       
-
-
-        import requests
-        import urllib.parse
-        import re
-        import os
-        import sys
-        import subprocess
-        import time
-        from concurrent.futures import ThreadPoolExecutor, as_completed
-        from prompt_toolkit import prompt
-        from prompt_toolkit.completion import PathCompleter
-        from colorama import Fore, init
-        import logging
-        from requests.adapters import HTTPAdapter
-        from urllib3.util.retry import Retry
-
-
-
-        USER_AGENTS = [
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Version/14.1.2 Safari/537.36",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/91.0.864.70",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Firefox/89.0",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0",
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:91.0) Gecko/20100101 Firefox/91.0",
-            "Mozilla/5.0 (Linux; Android 10; SM-G973F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36",
-            "Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Mobile Safari/537.36",
-        ]
-        
-        WAF_SIGNATURES = {
-            'Cloudflare': ['cf-ray', 'cloudflare', 'cf-request-id', 'cf-cache-status'],
-            'Akamai': ['akamai', 'akamai-ghost', 'akamai-x-cache', 'x-akamai-request-id'],
-            'Sucuri': ['x-sucuri-id', 'sucuri', 'x-sucuri-cache'],
-            'ModSecurity': ['mod_security', 'modsecurity', 'x-modsecurity-id', 'x-mod-sec-rule'],
-            'Barracuda': ['barra', 'x-barracuda', 'bnmsg'],
-            'Imperva': ['x-cdn', 'imperva', 'incapsula', 'x-iinfo', 'x-cdn-forward'],
-            'F5 Big-IP ASM': ['x-waf-status', 'f5', 'x-waf-mode', 'x-asm-ver'],
-            'DenyAll': ['denyall', 'sessioncookie'],
-            'FortiWeb': ['fortiwafsid', 'x-fw-debug'],
-            'Jiasule': ['jsluid', 'jiasule'],
-            'AWS WAF': ['awswaf', 'x-amzn-requestid', 'x-amzn-trace-id'],
-            'StackPath': ['stackpath', 'x-sp-url', 'x-sp-waf'],
-            'BlazingFast': ['blazingfast', 'x-bf-cache-status', 'bf'],
-            'NSFocus': ['nsfocus', 'nswaf', 'nsfocuswaf'],
-            'Edgecast': ['ecdf', 'x-ec-custom-error'],
-            'Alibaba Cloud WAF': ['ali-cdn', 'alibaba'],
-            'AppTrana': ['apptrana', 'x-wf-sid'],
-            'Radware': ['x-rdwr', 'rdwr'],
-            'SafeDog': ['safedog', 'x-sd-id'],
-            'Comodo WAF': ['x-cwaf', 'comodo'],
-            'Yundun': ['yundun', 'yunsuo'],
-            'Qiniu': ['qiniu', 'x-qiniu'],
-            'NetScaler': ['netscaler', 'x-nsprotect'],
-            'Securi': ['x-sucuri-id', 'sucuri', 'x-sucuri-cache'],
-            'Reblaze': ['x-reblaze-protection', 'reblaze'],
-            'Microsoft Azure WAF': ['azure', 'x-mswaf', 'x-azure-ref'],
-            'NAXSI': ['x-naxsi-sig'],
-            'Wallarm': ['x-wallarm-waf-check', 'wallarm'],
-        }
-
-
+    def lfi_scanner():
         init(autoreset=True)
 
         def get_random_user_agent():
             return random.choice(USER_AGENTS)
-        
-        def check_and_install_packages(packages):
-            for package, version in packages.items():
-                try:
-                    __import__(package)
-                except ImportError:
-                    subprocess.check_call([sys.executable, '-m', 'pip', 'install', f"{package}=={version}"])
-
-
 
         def get_retry_session(retries=3, backoff_factor=0.3, status_forcelist=(500, 502, 504)):
             session = requests.Session()
@@ -1512,55 +1251,36 @@ try:
                 sys.exit(1)
 
 
-    def handle_selection(selection):
-        if selection == '1':
-            clear_screen()
-            run_lfi_scanner()
-
-        elif selection == '2':
-            clear_screen()
-            run_or_scanner()
-
-        elif selection == '3':
-            clear_screen()
-            run_sql_scanner()
-
-        elif selection == '4':
-            clear_screen()
-            run_xss_scanner()
-        elif selection == '5':
-            clear_screen()
-            print_exit_menu()
-
-        else:
-            print_exit_menu()
-
     def main():
-        clear_screen()
-        required_packages = {
-            'aiohttp': '3.8.6',
-            'requests': '2.28.1',
-            'prompt_toolkit': '3.0.36',
-            'colorama': '0.4.6'
-        }
-
-        check_and_install_packages(required_packages)
-
-        sleep(3)
-        clear_screen()
-
         while True:
+            clear_screen()
             display_menu()
-            choice = input(f"\n{Fore.CYAN}[?] Select an option (0-5): {Style.RESET_ALL}").strip()
-            handle_selection(choice)
+            if 'error' in locals() and (error):
+                print(f"{Fore.RED}[!] Invalid option. Please try again.{Fore.RESET}")
+                input(f"{Fore.YELLOW}[i] Press Enter to try again...{Fore.RESET}")
+                error = False
+                continue
+            choice = input(f"\n{Fore.CYAN}[?] Select an option (0-5): {Style.RESET_ALL}")
+            if choice == '1':
+                lfi_scanner()
+            elif choice == '2':
+                or_scanner()
+            elif choice == '3':
+                sql_scanner()
+            elif choice == '4':
+                xss_scanner()
+            elif choice == '5':
+                exit_menu()
+            else:
+                error = True
 
     if __name__ == "__main__":
         try:
             main()
         except KeyboardInterrupt:
-            print_exit_menu()
+            exit_menu()
             sys.exit(0)
 
 except KeyboardInterrupt:
-    print_exit_menu()
+    exit_menu()
     sys.exit(0)
